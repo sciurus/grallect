@@ -10,7 +10,7 @@ require 'uri'
 config = { 
   :graphite => { :url => 'http://localhost' },
   :collectd => { :prefix => "collectd", :postfix => nil, :escape_character => '_', :interval => 10 },
-  :cpu => { :count => 8, :warning => 0.2, :critical => 0.4, :window => 60 },
+  :cpu => { :count => 8, :warning => 80, :critical => 95, :window => 60 },
   :verbose => true,
 }
 
@@ -27,7 +27,6 @@ def check_cpu(config,logger)
   warning = []
   critical = []
 
-  # e.g if system has 4 CPUs range is 0 to 3
   range = (0..config[:cpu][:count]-1)
 
   # number of data points to average together
@@ -37,9 +36,14 @@ def check_cpu(config,logger)
   range.each do |i|
     # for each data point, add together the user and system time, then get an average of the data points
     url = URI.escape("#{config[:graphite][:url]}/render/?format=raw&target=movingAverage(sumSeries(#{config[:host]}.collectd.cpu-#{i}.cpu-{user,system}),#{samples})&from=-#{config[:cpu][:window]}seconds")
-    logger.debug( URI.unescape(url) )
-    response = open(url).read
-    logger.debug(response)
+    logger.debug URI.unescape(url)
+    begin
+      response = open(url).read
+    rescue SocketError => e
+      logger.fatal e.message
+      exit 1
+    end
+    logger.debug response
     value = response.chomp!.rpartition(',').last.to_f
     if value >= config[:cpu][:warning] and value < config[:cpu][:critical]
       warning.push [i, value]
