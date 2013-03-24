@@ -11,7 +11,7 @@ require 'uri'
 config = { 
   :graphite => { :url => 'http://localhost' },
   :collectd => { :prefix => "collectd", :postfix => nil, :escape_character => '_', :interval => 10 },
-  :cpu => { :count => 9, :warning => 80, :critical => 95, :window => 60 },
+  :cpu => { :count => 2, :warning => 80, :critical => 95, :window => 60 },
   :verbose => true,
 }
 
@@ -24,9 +24,11 @@ config[:host].gsub!('.', config[:collectd][:escape_character])
 logger = Logger.new(STDERR)
 logger.level = config[:verbose] ? Logger::DEBUG : Logger::ERROR
 
+
+
 def check_cpu(config,logger)
-  warning = []
-  critical = []
+  results = []
+  code = nil
 
   range = (0..config[:cpu][:count]-1)
 
@@ -56,36 +58,41 @@ def check_cpu(config,logger)
     end
 
     if data.empty?
-      logger.warn "No data returned for #{url}"
+      logger.warn "No data found at #{url}"
     else
       value = data.first['datapoints'].last.first
+      results.push value
       if value >= config[:cpu][:warning] and value < config[:cpu][:critical]
-        warning.push [i, value]
+        code = 1
       elsif value >= config[:cpu][:critical]
-        critical.push [i, value]
+        code = 2
+      else
+        code = 0
       end
     end
 
   end
 
-  if not critical.empty?
-    output = 'CRITICAL: '
-    code = 2
-  elsif not warning.empty?
+  case code
+  when 0
+    output = 'OK: '
+  when 1
     output = 'WARNING: '
-    code = 1
+  when 2
+    output = 'CRITICAL: '
   else
-    output = 'OK: CPU averages below threshholds'
-    code = 0
+    code = 3
+    output = 'UNKNOWN: No data was found'
   end
 
-  critical.each { |c| output = output + "CPU #{c.first} averaged #{c.last}%. " }
-  warning.each { |c| output = output + "CPU #{c.first} averaged #{c.last}%. " }
+  results.each_with_index { |value,index| output = output + "CPU #{index} averaged #{value}%. " }
 
   puts output
   return code
 
 end
+
+
 
 case config[:command]
 when 'cpu'
