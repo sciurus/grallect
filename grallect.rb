@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 
+require 'json'
 require 'logger'
 require 'open-uri'
 require 'pp'
@@ -10,7 +11,7 @@ require 'uri'
 config = { 
   :graphite => { :url => 'http://localhost' },
   :collectd => { :prefix => "collectd", :postfix => nil, :escape_character => '_', :interval => 10 },
-  :cpu => { :count => 8, :warning => 80, :critical => 95, :window => 60 },
+  :cpu => { :count => 9, :warning => 80, :critical => 95, :window => 60 },
   :verbose => true,
 }
 
@@ -34,22 +35,37 @@ def check_cpu(config,logger)
 
   # Checking each cpu individually
   range.each do |i|
+
     # for each data point, add together the user and system time, then get an average of the data points
-    url = URI.escape("#{config[:graphite][:url]}/render/?format=raw&target=movingAverage(sumSeries(#{config[:host]}.collectd.cpu-#{i}.cpu-{user,system}),#{samples})&from=-#{config[:cpu][:window]}seconds")
+    url = URI.escape("#{config[:graphite][:url]}/render/?format=json&target=movingAverage(sumSeries(#{config[:host]}.collectd.cpu-#{i}.cpu-{user,system}),#{samples})&from=-#{config[:cpu][:window]}seconds")
     logger.debug URI.unescape(url)
+
     begin
       response = open(url).read
+      logger.debug response
     rescue SocketError => e
       logger.fatal e.message
       exit 1
     end
-    logger.debug response
-    value = response.chomp!.rpartition(',').last.to_f
-    if value >= config[:cpu][:warning] and value < config[:cpu][:critical]
-      warning.push [i, value]
-    elsif value >= config[:cpu][:critical]
-      critical.push [i, value]
+
+    begin
+      data = JSON.parse(response)
+    rescue ParserError => e
+      logger.fatal e.message
+      exit 1
     end
+
+    if data.empty?
+      logger.warn "No data returned for #{url}"
+    else
+      value = data.first['datapoints'].last.first
+      if value >= config[:cpu][:warning] and value < config[:cpu][:critical]
+        warning.push [i, value]
+      elsif value >= config[:cpu][:critical]
+        critical.push [i, value]
+      end
+    end
+
   end
 
   if not critical.empty?
