@@ -14,7 +14,9 @@ class Grallect
     @config = { 
       :graphite => { :url => 'http://localhost' },
       :collectd => { :prefix => nil, :postfix => '.collectd', :escape_character => '_', :interval => 10 },
-      :cpu => { :count => 2, :warning => 80, :critical => 95, :window => 60 },
+      :cpu => { :count => 2, :warning => 80, :critical => 95 },
+      :ram => { :warning => 80, :critical => 95 },
+      :window => 60,
       :verbose => true,
     }
 
@@ -31,13 +33,13 @@ class Grallect
     range = (0..@config[:cpu][:count]-1)
 
     # number of data points to average together
-    samples = @config[:cpu][:window] / @config[:collectd][:interval]
+    samples = @config[:window] / @config[:collectd][:interval]
 
     # Checking each cpu individually
     range.each do |i|
 
       # for each data point, add together the user and system time, then get an average of the data points
-      url = URI.escape("#{@config[:graphite][:url]}/render/?format=json&target=movingAverage(sumSeries(#{@config[:collectd][:prefix]}#{@config[:host]}#{@config[:collectd][:postfix]}.cpu-#{i}.cpu-{user,system}),#{samples})&from=-#{@config[:cpu][:window]}seconds")
+      url = URI.escape("#{@config[:graphite][:url]}/render/?format=json&target=movingAverage(sumSeries(#{@config[:collectd][:prefix]}#{@config[:host]}#{@config[:collectd][:postfix]}.cpu-#{i}.cpu-{user,system}),#{samples})&from=-#{@config[:window]}seconds")
       @logger.debug URI.unescape(url)
 
       begin
@@ -100,6 +102,8 @@ g = Grallect.new(host)
 case command
 when 'cpu'
   g.check_cpu
+when 'ram'
+  g.check_ram
 else
   puts 'What kind of command is that?'
 end
