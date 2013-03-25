@@ -64,7 +64,7 @@ class Grallect
       output = 'UNKNOWN: No data was found'
     end
 
-    results.each { |r| output = output + "#{r[:name]} averaged #{r[:value]}%. " }
+    results.each { |r| output = output + "#{r[:label]} was #{r[:value]}. " }
 
     puts output
     exit code
@@ -87,7 +87,7 @@ class Grallect
         code = 3
       else
         values.each_with_index do |value, i|
-          results.push({:name => "CPU #{i}", :value => value})
+          results.push({:label => "CPU #{i} usage percentage", :value => value})
         end
         highest = values.sort.last
         if highest >= @config[:cpu][:warning] and highest < @config[:cpu][:critical]
@@ -112,7 +112,7 @@ class Grallect
       code = 3
     else
       value = data.first['datapoints'].last.first
-      results.push({:name => "Memory", :value => value})
+      results.push({:label => "Memory usage percentage", :value => value})
       if value >= @config[:memory][:warning] and value < @config[:memory][:critical]
         code = 1
       elsif value >= @config[:memory][:critical]
