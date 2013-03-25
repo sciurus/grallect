@@ -97,6 +97,7 @@ class Grallect
 
   def check_cpu
     results = []
+    code = nil
 
     # fetching the data seeprately makes parsing results easier
     user_data = self.get_data("#{@host_path}.cpu-*.cpu-user")
@@ -113,15 +114,8 @@ class Grallect
       code = 3
     else
       values.each_with_index do |value, i|
+        code = update_code(code, value, @config[:cpu][:warning], @config[:cpu][:critical])
         results.push({:label => "CPU #{i} usage percentage", :value => value})
-      end
-      highest = values.sort.last
-      if highest >= @config[:cpu][:warning] and highest < @config[:cpu][:critical]
-        code = 1
-      elsif highest >= @config[:cpu][:critical]
-        code = 2
-      else
-        code = 0
       end
     end
 
@@ -153,6 +147,7 @@ class Grallect
 
   def check_memory
     results = []
+    code = nil
 
     data = self.get_data("asPercent(#{@host_path}.memory.memory-{used,free})")
 
@@ -161,14 +156,8 @@ class Grallect
       code = 3
     else
       value = data.first['datapoints'].last.first
+      code = update_code(code, value, @config[:memory][:warning], @config[:memory][:critical])
       results.push({:label => "Memory usage percentage", :value => value})
-      if value >= @config[:memory][:warning] and value < @config[:memory][:critical]
-        code = 1
-      elsif value >= @config[:memory][:critical]
-        code = 2
-      else
-        code = 0
-      end
     end
 
     output_status(code, results)
