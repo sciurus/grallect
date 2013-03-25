@@ -61,7 +61,6 @@ class Grallect
     when 2
       output = 'CRITICAL: '
     else
-      code = 3
       output = 'UNKNOWN: No data was found'
     end
 
@@ -73,28 +72,30 @@ class Grallect
 
   def check_cpu
     results = []
-    code = nil
 
       user_data = self.get_data("#{@host_path}.cpu-*.cpu-user")
       system_data = self.get_data("#{@host_path}.cpu-*.cpu-system")
 
       user_values = user_data.map { |d| d['datapoints'].last.first }
       system_values = system_data.map { |d| d['datapoints'].last.first }
+
       # array with sum of each pair of user and system data
       values = [user_values, system_values].transpose.map { |a| a.reduce(:+) }
 
       if values.empty?
         @logger.warn "No data found"
+        code = 3
       else
         values.each_with_index do |value, i|
           results.push({:name => "CPU #{i}", :value => value})
-          if value >= @config[:cpu][:warning] and value < @config[:cpu][:critical]
-            code = 1
-          elsif value >= @config[:cpu][:critical]
-            code = 2
-          else
-            code = 0
-          end
+        end
+        highest = values.sort.last
+        if highest >= @config[:cpu][:warning] and highest < @config[:cpu][:critical]
+          code = 1
+        elsif highest >= @config[:cpu][:critical]
+          code = 2
+        else
+          code = 0
         end
       end
 
@@ -103,12 +104,12 @@ class Grallect
 
   def check_memory
     results = []
-    code = nil
 
     data = self.get_data("asPercent(#{@host_path}.memory.memory-{used,free})")
 
     if data.empty?
       @logger.warn "No data found"
+      code = 3
     else
       value = data.first['datapoints'].last.first
       results.push({:name => "Memory", :value => value})
