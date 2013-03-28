@@ -28,11 +28,11 @@ class Grallect
     @logger.level = @config[:verbose] ? Logger::DEBUG : Logger::ERROR
   end
 
-  def get_data(graphite_function)
+  def get_data(graphite_expression)
     # number of data points to average together
     samples = @config[:window] / @config[:collectd][:interval]
 
-    url = URI.escape("#{@config[:graphite][:url]}/render/?format=json&target=movingAverage(#{graphite_function},#{samples})&from=-#{@config[:window]}seconds")
+    url = URI.escape("#{@config[:graphite][:url]}/render/?format=json&target=movingAverage(#{graphite_expression},#{samples})&from=-#{@config[:window]}seconds")
     @logger.debug URI.unescape(url)
 
     begin
