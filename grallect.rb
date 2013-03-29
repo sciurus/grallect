@@ -10,14 +10,15 @@ require 'pp'
 
 class Grallect
 
-  def initialize(host,verbose)
+  def initialize(host, verbose, config_path)
     @logger = Logger.new(STDERR)
     @logger.level = verbose ? Logger::DEBUG : Logger::ERROR
 
     begin
-      @config = JSON.load( File.read( File.expand_path('../grallect.json', __FILE__) ) )
+      @config = JSON.load( File.read( config_path ) )
     rescue => e
       @logger.fatal e.message
+      exit 1
     end
 
     escaped_host = host.gsub('.', @config['collectd']['escape_character'])
@@ -107,6 +108,7 @@ class Grallect
     if values.empty?
       code = 3
     else
+      # since numberic labels not bothering with hash like used for check_disk
       values.each_with_index do |value, i|
         code = update_code(code, value, @config['cpu']['warning'], @config['cpu']['critical'])
         results.push({'label' => "CPU #{i} usage percentage", 'value' => value})
@@ -195,9 +197,14 @@ end
 VERSION = '20130329'
 
 verbose = false
+config_path = File.expand_path('../grallect.json', __FILE__)
 
 OptionParser.new do |opts|
   opts.banner = "Usage: grallect [options] host metric"
+
+  opts.on('-c', '--config FILE', "Path to configuration file") do |c|
+    config_path = c
+  end
 
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     verbose = v
@@ -222,7 +229,7 @@ end
 host = ARGV[0]
 metric = ARGV[1]
 
-g = Grallect.new(host, verbose)
+g = Grallect.new(host, verbose, config_path)
 
 if g.respond_to?("check_#{metric}")
   g.send("check_#{metric}")
