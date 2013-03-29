@@ -110,7 +110,6 @@ class Grallect
     values = [user_values, system_values].transpose.map { |a| a.reduce(:+) }
 
     if values.empty?
-      @logger.warn "No data found"
       code = 3
     else
       values.each_with_index do |value, i|
@@ -139,7 +138,6 @@ class Grallect
     data = Hash[labels.zip(values)]
 
     if data.empty?
-      @logger.warn "No data found"
       code = 3
     else
       data.each_key do |k|
@@ -160,7 +158,6 @@ class Grallect
     data = self.get_data("#{@host_path}.interface-*.if_octets.*")
 
     if data.empty?
-      @logger.warn "No data found"
       code = 3
     else
       data.each do |d|
@@ -186,7 +183,6 @@ class Grallect
     data = self.get_data("asPercent(#{@host_path}.memory.memory-{used,free})")
 
     if data.empty?
-      @logger.warn "No data found"
       code = 3
     else
       value = data.first['datapoints'].last.first
