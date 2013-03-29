@@ -184,7 +184,7 @@ class Grallect
     else
       value = data.first['datapoints'].last.first
       code = update_code(code, value, @config['memory']['warning'], @config['memory']['critical'])
-      results.push({'label' => "Memory usage percentage", 'value' => value})
+      results.push({'label' => 'Memory usage percentage', 'value' => value})
     end
 
     output_status(code, results)
@@ -200,13 +200,13 @@ verbose = false
 config_path = File.expand_path('../grallect.json', __FILE__)
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: grallect [options] host metric"
+  opts.banner = 'Usage: grallect [options] host metric'
 
-  opts.on('-c', '--config FILE', "Path to configuration file") do |c|
+  opts.on('-c', '--config FILE', 'Path to configuration file') do |c|
     config_path = c
   end
 
-  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+  opts.on('-v', '--[no-]verbose', 'Run verbosely') do |v|
     verbose = v
   end
 
@@ -215,14 +215,14 @@ OptionParser.new do |opts|
      exit
    end
 
-   opts.on_tail("--version", "Show version") do
+   opts.on_tail('--version', 'Show version') do
      puts VERSION
      exit
     end
 end.parse!
 
 if ARGV.length != 2
-  $stderr.puts "USAGE: grallect host metric"
+  $stderr.puts 'USAGE: grallect host metric'
   exit 1
 end
 
