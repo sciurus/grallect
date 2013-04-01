@@ -10,16 +10,11 @@ require 'pp'
 
 class Grallect
 
-  def initialize(host, verbose, config_path)
+  def initialize(host, verbose, config)
+    @config = config
+
     @logger = Logger.new(STDERR)
     @logger.level = verbose ? Logger::DEBUG : Logger::ERROR
-
-    begin
-      @config = JSON.load( File.read( config_path ) )
-    rescue => e
-      @logger.fatal e.message
-      exit 1
-    end
 
     escaped_host = host.gsub('.', @config['collectd']['escape_character'])
     @host_path = "#{@config['collectd']['prefix']}#{escaped_host}#{@config['collectd']['postfix']}"
@@ -194,7 +189,7 @@ end
 
 
 
-VERSION = '20130329'
+VERSION = '20130401'
 
 verbose = false
 config_path = File.expand_path('../grallect.json', __FILE__)
@@ -229,7 +224,14 @@ end
 host = ARGV[0]
 metric = ARGV[1]
 
-g = Grallect.new(host, verbose, config_path)
+begin
+  config = JSON.load( File.read( config_path ) )
+rescue => e
+  $stderr.puts e.message
+  exit 1
+end
+
+g = Grallect.new(host, verbose, config)
 
 if g.respond_to?("check_#{metric}")
   g.send("check_#{metric}")
