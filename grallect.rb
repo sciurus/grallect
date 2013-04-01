@@ -94,19 +94,25 @@ class Grallect
     user_data = self.get_data("#{@host_path}.cpu-*.cpu-user")
     system_data = self.get_data("#{@host_path}.cpu-*.cpu-system")
 
+    # extract usage for each cpu
     user_values = user_data.map { |d| d['datapoints'].last.first }
     system_values = system_data.map { |d| d['datapoints'].last.first }
+
+    # extract cpu identifiers
+    labels = user_data.map { |d| /cpu-(.*?)\./.match(d['target'])[1] }
 
     # add user and system data together for the check
     values = [user_values, system_values].transpose.map { |a| a.reduce(:+) }
 
-    if values.empty?
+    # combine labels and values
+    data = Hash[labels.zip(values)]
+
+    if data.empty?
       code = 3
     else
-      # since numberic labels not bothering with hash like used for check_disk
-      values.each_with_index do |value, i|
-        code = update_code(code, value, @config['cpu']['warning'], @config['cpu']['critical'])
-        results.push({'label' => "CPU #{i} usage percentage", 'value' => value})
+      data.each_key do |k|
+        code = update_code(code, data[k], @config['cpu']['warning'], @config['cpu']['critical'])
+        results.push({'label' => "CPU #{k} usage percentage", 'value' => data[k]})
       end
     end
 
@@ -117,7 +123,8 @@ class Grallect
     results = []
     code = nil
 
-    # fetch in similar style to cpu
+    # fetching data in similar style to cpu
+
     # have graphite turn raw iops into percentage for me
     read_data = self.get_data("asPercent(#{@host_path}.disk-sd*.disk_ops.read,#{@config['disk']['iops']})")
     write_data = self.get_data("asPercent(#{@host_path}.disk-sd*.disk_ops.write,#{@config['disk']['iops']})")
