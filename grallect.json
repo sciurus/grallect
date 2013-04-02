@@ -17,6 +17,10 @@
     "warning": 80,
     "critical": 95
   },
+  "swap": {
+    "warning": 80,
+    "critical": 95
+  },
   "interface": {
     "speed": 1000,
     "warning": 80,

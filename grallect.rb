@@ -191,6 +191,27 @@ class Grallect
 
     output_status(code, results)
   end
+
+  def check_swap
+    results = []
+    code = nil
+
+    # this fetches swap used as percentage of total swap
+    # and swap free as percetage of total swap
+    # we only check the former
+    data = self.get_data("asPercent(#{@host_path}.swap.swap-{used,free})")
+
+    if data.empty?
+      code = 3
+    else
+      value = data.first['datapoints'].last.first
+      code = update_code(code, value, @config['swap']['warning'], @config['swap']['critical'])
+      results.push({'label' => 'Swap usage percentage', 'value' => value})
+    end
+
+    output_status(code, results)
+  end
+
 end
 
 
