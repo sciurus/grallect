@@ -153,17 +153,17 @@ class Grallect
     code = nil
 
     # fetch both tx and rx at once
-    # checking them seperatly instead of combining
-    data = self.get_data("#{@host_path}.interface-*.if_octets.*")
+    # have graphite transform bytes to megabits
+    data = self.get_data("scale(#{@host_path}.interface-*.if_octets.*,0.0000076294)")
 
     if data.empty?
       code = 3
     else
       data.each do |d|
         interface = /interface-(.*?)\./.match(d['target'])[1]
-        direction = /if_octets\.(.*),/.match(d['target'])[1]
+        direction = /if_octets\.(.*?),/.match(d['target'])[1]
         # convert bytes to megabits
-        value = d['datapoints'].last.first / 131072
+        value = d['datapoints'].last.first
         code = update_code(code, value, @config['interface']['warning'], @config['interface']['critical'])
         results.push({'label' => "Interface #{interface} #{direction} transferred", 'value' => value})
       end
