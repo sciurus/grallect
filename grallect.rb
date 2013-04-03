@@ -217,7 +217,7 @@ end
 
 
 
-VERSION = '20130401'
+VERSION = '20130402'
 
 verbose = false
 config_path = File.expand_path('../grallect.json', __FILE__)
