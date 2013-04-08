@@ -178,16 +178,27 @@ class Grallect
     results = []
     code = nil
 
-    data = self.get_data("asPercent(#{@host_path}.df-*.df_complex-{used,free})")
+    # having to fetch these seperately and calculate percentage myself
+    # because "asPercent(#{@host_path}.df-*.df_complex-{used,free})"
+    # would calculate percentage across all filesystems
+    used_data = self.get_data("#{@host_path}.df-*.df_complex-used")
+    free_data = self.get_data("#{@host_path}.df-*.df_complex-free")
+
+    used_values = used_data.map { |d| d['datapoints'].last.first }
+    free_values = free_data.map { |d| d['datapoints'].last.first }
+
+    labels = used_data.map { |d| /df-(.*?)\./.match(d['target'])[1] }
+    # convert to percentage
+    values = [used_values, free_values].transpose.map { |a| a.first / (a.first + a.last) * 100 }
+    data = Hash[labels.zip(values)]
+    pp data
+
     if data.empty?
       code = 3
     else
-      data.each do |d|
-        next if /df_complex-free/.match(d['target'])
-        disk = /df-(.*?)\./.match(d['target'])[1]
-        value = d['datapoints'].last.first
-        code = update_code(code, value, @config['df']['warning'], @config['df']['critical'])
-        results.push({'label' => "Disk #{disk} space used percentage", 'value' => value})
+      data.each_key do |k|
+        code = update_code(code, data[k], @config['df']['warning'], @config['df']['critical'])
+        results.push( {'label' => "Disk #{k} space used percentage", 'value' => data[k]} )
       end
     end
 
