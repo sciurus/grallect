@@ -174,6 +174,26 @@ class Grallect
     output_status(code, results)
   end
 
+  def check_df
+    results = []
+    code = nil
+
+    data = self.get_data("asPercent(#{@host_path}.df-*.df_complex-{used,free})")
+    if data.empty?
+      code = 3
+    else
+      data.each do |d|
+        next if /df_complex-free/.match(d['target'])
+        disk = /df-(.*?)\./.match(d['target'])[1]
+        value = d['datapoints'].last.first
+        code = update_code(code, value, @config['df']['warning'], @config['df']['critical'])
+        results.push({'label' => "Disk #{disk} space used percentage", 'value' => value})
+      end
+    end
+
+    output_status(code, results)
+  end
+
   def check_memory
     results = []
     code = nil
@@ -219,7 +239,7 @@ end
 
 
 
-VERSION = '20130403'
+VERSION = '20130407'
 
 verbose = false
 config_path = File.expand_path('../grallect.json', __FILE__)
