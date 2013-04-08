@@ -29,16 +29,18 @@ class Grallect
     begin
       response = open(url).read
       @logger.debug response
-    rescue SocketError => e
+    rescue => e
       @logger.fatal e.message
-      exit 1
+      puts "UNKNOWN: Internal error"
+      exit 3
     end
 
     begin
       data = JSON.parse(response)
-    rescue ParserError => e
+    rescue => e
       @logger.fatal e.message
-      exit 1
+      puts "UNKNOWN: Internal error"
+      exit 3
     end
 
     return data
@@ -294,7 +296,8 @@ end.parse!
 
 if ARGV.length != 2
   $stderr.puts 'USAGE: grallect host metric'
-  exit 1
+  puts "UNKNOWN: Internal error"
+  exit 3
 end
 
 host = ARGV[0]
@@ -304,7 +307,8 @@ begin
   config = JSON.load( File.read( config_path ) )
 rescue => e
   $stderr.puts e.message
-  exit 1
+  puts "UNKNOWN: Internal error"
+  exit 3
 end
 
 g = Grallect.new(host, verbose, config)
@@ -313,4 +317,6 @@ if g.respond_to?("check_#{metric}")
   g.send("check_#{metric}")
 else
   $stderr.puts "I do not know how to check #{metric}"
+  puts "UNKNOWN: Internal error"
+  exit 3
 end
