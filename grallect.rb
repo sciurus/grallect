@@ -6,7 +6,6 @@ require 'logger'
 require 'open-uri'
 require 'optparse'
 require 'uri'
-require 'pp'
 
 class Grallect
 
@@ -191,7 +190,6 @@ class Grallect
     # convert to percentage
     values = [used_values, free_values].transpose.map { |a| a.first / (a.first + a.last) * 100 }
     data = Hash[labels.zip(values)]
-    pp data
 
     if data.empty?
       code = 3
