@@ -245,12 +245,29 @@ class Grallect
     output_status(code, results)
   end
 
+  def check_load
+    results = []
+    code = nil
+
+    data = self.get_data("#{@host_path}.load.load.shortterm")
+
+    if data.empty?
+      code = 3
+    else
+      value = data.first['datapoints'].last.first
+      code = update_code(code, value, @config['load']['warning'], @config['load']['critical'])
+      results.push({'label' => 'Load ', 'value' => value})
+    end
+
+    output_status(code, results)
+  end
+
 end
 
 
 
 
-VERSION = '20130407'
+VERSION = '20130408'
 
 verbose = false
 config_path = File.expand_path('../grallect.json', __FILE__)

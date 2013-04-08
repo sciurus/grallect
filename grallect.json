@@ -13,6 +13,10 @@
     "warning": 80,
     "critical": 95
   },
+  "load": {
+    "warning": 4,
+    "critical": 8
+  },
   "memory": {
     "warning": 80,
     "critical": 95
