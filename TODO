@@ -1,0 +1,5 @@
+Add README.
+Add tests.
+Refactor remainng checks that have a similar implementation so that they build on shared methods rather than copying code.
+Refactor so that checks can be written be extending a class, rather than all being in the grallect class.
+Make it possible to scan a directory and load all the checks defined in it, rather than requiring them all to be in a single file.
