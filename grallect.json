@@ -13,6 +13,14 @@
     "warning": 80,
     "critical": 95
   },
+  "java_heap": {
+    "warning": 65,
+    "critical": 85
+  },
+  "java_nonheap": {
+    "warning": 65,
+    "critical": 85
+  },
   "load": {
     "warning": 4,
     "critical": 8

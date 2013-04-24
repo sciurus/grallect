@@ -234,6 +234,14 @@ class Grallect
     perform_single_check('swap', 'swap.swap-{used,free}', true)
   end
 
+  def check_java_heap
+    perform_single_check('java_heap', 'curl_json-javaMemory.bytes-HeapMemoryUsage-{used,max}', true)
+  end
+
+  def check_java_nonheap
+    perform_single_check('java_heap', 'curl_json-javaMemory.bytes-NonHeapMemoryUsage-{used,max}', true)
+  end
+
   def check_load
     perform_single_check('load', 'load.load.shortterm')
   end

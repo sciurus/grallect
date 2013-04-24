@@ -8,13 +8,17 @@ grallect [options] host metric
 
 # Supported metrics
 
-* CPU
-* Disk
-* DF
-* Interface
-* Memory
-* Swap
-* Load
+* cpu
+* disk
+* df
+* interface
+* memory
+* swap
+* load
+* java_heap
+* java_nonheap
+
+The java metrics assume you are using jolokia and the curl_json plugin.
 
 # Configuration options
 
