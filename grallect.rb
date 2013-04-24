@@ -170,32 +170,6 @@ class Grallect
     output_status(code, results)
   end
 
-  def check_interface
-    results = []
-    code = nil
-
-    # could have graphite do this too via scale()
-    bytes_per_second = @config['interface']['mbps'] * 131072
-
-    # fetch both tx and rx at once
-    # have graphite transform octets transferred into percentage of interface transfer rate for me
-    data = self.get_data("asPercent(#{@host_path}.interface-*.if_octets.*,#{bytes_per_second})")
-
-    if data.empty?
-      code = 3
-    else
-      data.each do |d|
-        interface = /interface-(.*?)\./.match(d['target'])[1]
-        direction = /if_octets\.(.*?),/.match(d['target'])[1]
-        value = d['datapoints'].last.first
-        code = update_code(code, value, @config['interface']['warning'], @config['interface']['critical'])
-        results.push({'label' => "Interface #{interface} #{direction} usage percentage", 'value' => value})
-      end
-    end
-
-    output_status(code, results)
-  end
-
   def check_df
     results = []
     code = nil
@@ -220,6 +194,32 @@ class Grallect
       data.each_key do |k|
         code = update_code(code, data[k], @config['df']['warning'], @config['df']['critical'])
         results.push( {'label' => "Disk #{k} space used percentage", 'value' => data[k]} )
+      end
+    end
+
+    output_status(code, results)
+  end
+
+  def check_interface
+    results = []
+    code = nil
+
+    # could have graphite do this too via scale()
+    bytes_per_second = @config['interface']['mbps'] * 131072
+
+    # fetch both tx and rx at once
+    # have graphite transform octets transferred into percentage of interface transfer rate for me
+    data = self.get_data("asPercent(#{@host_path}.interface-*.if_octets.*,#{bytes_per_second})")
+
+    if data.empty?
+      code = 3
+    else
+      data.each do |d|
+        interface = /interface-(.*?)\./.match(d['target'])[1]
+        direction = /if_octets\.(.*?),/.match(d['target'])[1]
+        value = d['datapoints'].last.first
+        code = update_code(code, value, @config['interface']['warning'], @config['interface']['critical'])
+        results.push({'label' => "Interface #{interface} #{direction} usage percentage", 'value' => value})
       end
     end
 
