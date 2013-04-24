@@ -87,6 +87,27 @@ class Grallect
     end
   end
 
+  def perform_single_check(check_name, target, percentage=false)
+    results = []
+    code = nil
+
+    graphite_expression = "#{@host_path}.#{target}"
+    graphite_expression = "asPercent(#{graphite_expression})" if percentage
+
+    # example target with percentage is memory.memory-{used,free}
+    data = self.get_data(graphite_expression)
+
+    if data.empty?
+      code = 3
+    else
+      value = data.first['datapoints'].last.first
+      code = update_code(code, value, @config[check_name]['warning'], @config[check_name]['critical'])
+      results.push({'label' => "#{check_name} usage percentage", 'value' => value})
+    end
+
+    output_status(code, results)
+  end
+
   def check_cpu
     results = []
     code = nil
@@ -206,60 +227,15 @@ class Grallect
   end
 
   def check_memory
-    results = []
-    code = nil
-
-    # this fetches memory used as percentage of total memory
-    # and memory free as percetage of total memory
-    # we only check the former
-    data = self.get_data("asPercent(#{@host_path}.memory.memory-{used,free})")
-
-    if data.empty?
-      code = 3
-    else
-      value = data.first['datapoints'].last.first
-      code = update_code(code, value, @config['memory']['warning'], @config['memory']['critical'])
-      results.push({'label' => 'Memory usage percentage', 'value' => value})
-    end
-
-    output_status(code, results)
+    perform_single_check('memory', 'memory.memory-{used,free}', true)
   end
 
   def check_swap
-    results = []
-    code = nil
-
-    # this fetches swap used as percentage of total swap
-    # and swap free as percetage of total swap
-    # we only check the former
-    data = self.get_data("asPercent(#{@host_path}.swap.swap-{used,free})")
-
-    if data.empty?
-      code = 3
-    else
-      value = data.first['datapoints'].last.first
-      code = update_code(code, value, @config['swap']['warning'], @config['swap']['critical'])
-      results.push({'label' => 'Swap usage percentage', 'value' => value})
-    end
-
-    output_status(code, results)
+    perform_single_check('swap', 'swap.swap-{used,free}', true)
   end
 
   def check_load
-    results = []
-    code = nil
-
-    data = self.get_data("#{@host_path}.load.load.shortterm")
-
-    if data.empty?
-      code = 3
-    else
-      value = data.first['datapoints'].last.first
-      code = update_code(code, value, @config['load']['warning'], @config['load']['critical'])
-      results.push({'label' => 'Load ', 'value' => value})
-    end
-
-    output_status(code, results)
+    perform_single_check('load', 'load.load.shortterm')
   end
 
 end
@@ -267,7 +243,7 @@ end
 
 
 
-VERSION = '20130408'
+VERSION = '20130424'
 
 verbose = false
 config_path = File.expand_path('../grallect.json', __FILE__)
