@@ -12,17 +12,15 @@ Use `-v` to see the request made to graphite and the response.
 
 # Supported metrics
 
-* cpu
-* disk
-* df
-* interface
-* memory
-* swap
-* load
-* java\_heap
-* java\_nonheap
-
-The java metrics assume you have loaded jolokia in your JVM and are using collectd's curl\_json plugin.
+* cpu - cpu  usage
+* df - disk space usage
+* disk - disk i/o activity
+* interface - network network usage
+* load - short term load average
+* memory - memory usage
+* swap - swap usage
+* java\_heap - JVM heap memory usage
+* java\_nonheap - JVM nonheap memory usage
 
 # Configuration options
 
