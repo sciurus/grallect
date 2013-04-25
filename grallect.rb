@@ -15,8 +15,9 @@ class Grallect
     @logger = Logger.new(STDERR)
     @logger.level = verbose ? Logger::DEBUG : Logger::ERROR
 
-    escaped_host = host.gsub('.', @config['collectd']['escape_character'])
-    @host_path = "#{@config['collectd']['prefix']}#{escaped_host}#{@config['collectd']['postfix']}"
+    processed_host = host.gsub('.', @config['collectd']['escape_character'])
+    processed_host.sub!(@config['graphite']['remove_from_hostname'], '')
+    @host_path = "#{@config['collectd']['prefix']}#{processed_host}#{@config['collectd']['postfix']}"
   end
 
   def get_data(graphite_expression)

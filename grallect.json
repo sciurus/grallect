@@ -1,6 +1,7 @@
 {
   "graphite": {
-    "url": "http://localhost"
+    "url": "http://localhost",
+    "remove_from_hostname": ""
   },
   "collectd": {
     "prefix": null,
