@@ -28,7 +28,12 @@ class Grallect
     @logger.debug URI.unescape(url)
 
     begin
-      response = open(url).read
+        open("http://...", :http_basic_authentication=>[user, password])
+      if @config["collectd"]["basic_auth"]["username"] and @config["collectd"]["basic_auth"]["password"]
+        response = open(url,:http_basic_authentication=>[@config["collectd"]["basic_auth"]["username"], @config["collectd"]["basic_auth"]["password"]]).read
+      else
+        response = open(url).read
+      end
       @logger.debug response
     rescue => e
       @logger.fatal e.message

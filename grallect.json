@@ -1,7 +1,11 @@
 {
   "graphite": {
     "url": "http://localhost",
-    "remove_from_hostname": null
+    "remove_from_hostname": null,
+    "basic_auth" : {
+      "username" : "foo",
+      "password" : "bar"
+    }
   },
   "collectd": {
     "prefix": null,
