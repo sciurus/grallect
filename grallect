@@ -28,10 +28,14 @@ class Grallect
     @logger.debug URI.unescape(url)
 
     begin
-      response = open(url).read
+      if @config["graphite"]["basic_auth"]["username"] and @config["graphite"]["basic_auth"]["password"]
+        response = open(url,:http_basic_authentication=>[@config["graphite"]["basic_auth"]["username"], @config["graphite"]["basic_auth"]["password"]]).read
+      else
+        response = open(url).read
+      end
       @logger.debug response
     rescue => e
-      @logger.fatal e.message
+      @logger.fatal e.backtrace.join("\n")
       puts "UNKNOWN: Internal error"
       exit 3
     end
@@ -236,11 +240,11 @@ class Grallect
   end
 
   def check_java_heap
-    perform_single_check('java_heap', 'curl_json-javaMemory.bytes-HeapMemoryUsage-{used,max}', true)
+    perform_single_check('java_heap', 'curl_json-javaVM.bytes-HeapMemoryUsage-{used,max}', true)
   end
 
   def check_java_nonheap
-    perform_single_check('java_heap', 'curl_json-javaMemory.bytes-NonHeapMemoryUsage-{used,max}', true)
+    perform_single_check('java_heap', 'curl_json-javaVM.bytes-NonHeapMemoryUsage-{used,max}', true)
   end
 
   def check_load
