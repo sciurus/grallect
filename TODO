@@ -3,4 +3,4 @@ Refactor remainng checks that have a similar implementation so that they build o
 Refactor so that checks can be written be extending a class, rather than all being in the grallect class.
 Make it possible to scan a directory and load all the checks defined in it, rather than requiring them all to be in a single file.
 Make it possible to load multiple config files from a directory, so each check can define its own config file.
-Check if current implementation supports basic auth and https for graphite.
+Check if current implementation supports https for graphite.
